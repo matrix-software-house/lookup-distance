@@ -50,6 +50,22 @@ server {
     add_header Referrer-Policy "strict-origin-when-cross-origin" always;
     add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'" always;
 
+    # CORS Headers for API
+    add_header Access-Control-Allow-Origin "*" always;
+    add_header Access-Control-Allow-Methods "GET, POST, OPTIONS" always;
+    add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization" always;
+
+    # Handle preflight requests
+    if ($request_method = 'OPTIONS') {
+        add_header Access-Control-Allow-Origin "*";
+        add_header Access-Control-Allow-Methods "GET, POST, OPTIONS";
+        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization";
+        add_header Access-Control-Max-Age 3600;
+        add_header Content-Type "text/plain charset=UTF-8";
+        add_header Content-Length 0;
+        return 204;
+    }
+
     # Logging
     access_log /var/log/nginx/distance.lookupferrara.it.access.log;
     error_log /var/log/nginx/distance.lookupferrara.it.error.log;
@@ -86,35 +102,8 @@ server {
     proxy_buffers 8 8k;
     proxy_busy_buffers_size 16k;
 
-    # Handle CORS preflight requests first
-    location ~* ^.+\.OPTIONS$ {
-        add_header Access-Control-Allow-Origin "*" always;
-        add_header Access-Control-Allow-Methods "GET, POST, OPTIONS" always;
-        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization" always;
-        add_header Access-Control-Max-Age 3600 always;
-        add_header Content-Type "text/plain charset=UTF-8" always;
-        add_header Content-Length 0 always;
-        return 204;
-    }
-
     # Main API endpoint
     location / {
-        # CORS Headers for all requests
-        add_header Access-Control-Allow-Origin "*" always;
-        add_header Access-Control-Allow-Methods "GET, POST, OPTIONS" always;
-        add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization" always;
-
-        # Handle OPTIONS requests
-        if ($request_method = 'OPTIONS') {
-            add_header Access-Control-Allow-Origin "*" always;
-            add_header Access-Control-Allow-Methods "GET, POST, OPTIONS" always;
-            add_header Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization" always;
-            add_header Access-Control-Max-Age 3600 always;
-            add_header Content-Type "text/plain charset=UTF-8" always;
-            add_header Content-Length 0 always;
-            return 204;
-        }
-
         # Rate limiting for API endpoints
         limit_req zone=api burst=20 nodelay;
 
@@ -155,7 +144,7 @@ server {
 
     # Robots.txt (prevent indexing of API)
     location = /robots.txt {
-        add_header Content-Type text/plain always;
+        add_header Content-Type text/plain;
         return 200 "User-agent: *\nDisallow: /\n";
     }
 
