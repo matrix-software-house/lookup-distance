@@ -1,0 +1,25 @@
+services:
+  lookup-distance-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lookup-distance-service
+    ports:
+      - "5001:5001"
+    environment:
+      - FLASK_ENV=production
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:5001/distance?origin=test&destination=test')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - lookup-distance-network
+
+networks:
+  lookup-distance-network:
+    driver: bridge

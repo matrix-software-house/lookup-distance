@@ -1,0 +1,121 @@
+{
+  "info": {
+    "name": "Distance Lookup Service",
+    "description": "Collection for testing the Flask Distance Lookup Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Basic Distance Lookup",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/distance?origin=New York, NY&destination=Boston, MA",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["distance"],
+          "query": [
+            {
+              "key": "origin",
+              "value": "New York, NY"
+            },
+            {
+              "key": "destination",
+              "value": "Boston, MA"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "International Distance",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/distance?origin=London, UK&destination=Paris, France",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["distance"],
+          "query": [
+            {
+              "key": "origin",
+              "value": "London, UK"
+            },
+            {
+              "key": "destination",
+              "value": "Paris, France"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Missing Origin (Error Test)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/distance?destination=Boston, MA",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["distance"],
+          "query": [
+            {
+              "key": "destination",
+              "value": "Boston, MA"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Missing Destination (Error Test)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/distance?origin=New York, NY",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["distance"],
+          "query": [
+            {
+              "key": "origin",
+              "value": "New York, NY"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Invalid Locations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5001/distance?origin=InvalidPlace123&destination=AnotherInvalidPlace456",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5001",
+          "path": ["distance"],
+          "query": [
+            {
+              "key": "origin",
+              "value": "InvalidPlace123"
+            },
+            {
+              "key": "destination",
+              "value": "AnotherInvalidPlace456"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

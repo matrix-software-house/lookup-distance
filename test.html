@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distance Lookup Service - Test Page</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .loading {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        .examples {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .example-button {
+            background-color: #28a745;
+            margin: 5px;
+            padding: 8px 15px;
+            font-size: 14px;
+            width: auto;
+            display: inline-block;
+        }
+        .example-button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ Distance Lookup Service</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            Get walking distances between any two locations using the Google Distance Matrix API
+        </p>
+        
+        <form id="distanceForm">
+            <div class="form-group">
+                <label for="origin">Origin Location:</label>
+                <input type="text" id="origin" name="origin" placeholder="e.g., New York, NY" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="destination">Destination Location:</label>
+                <input type="text" id="destination" name="destination" placeholder="e.g., Boston, MA" required>
+            </div>
+            
+            <button type="submit" id="submitBtn">Get Distance</button>
+        </form>
+
+        <div class="examples">
+            <h3>📍 Quick Examples:</h3>
+            <button class="example-button" onclick="fillExample('New York, NY', 'Boston, MA')">New York ↔ Boston</button>
+            <button class="example-button" onclick="fillExample('London, UK', 'Paris, France')">London ↔ Paris</button>
+            <button class="example-button" onclick="fillExample('San Francisco, CA', 'Los Angeles, CA')">SF ↔ LA</button>
+            <button class="example-button" onclick="fillExample('Sydney, Australia', 'Melbourne, Australia')">Sydney ↔ Melbourne</button>
+        </div>
+        
+        <div id="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5001';
+        
+        document.getElementById('distanceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const origin = document.getElementById('origin').value.trim();
+            const destination = document.getElementById('destination').value.trim();
+            
+            if (!origin || !destination) {
+                showResult('Please fill in both origin and destination.', 'error');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const resultDiv = document.getElementById('result');
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Getting Distance...';
+            showResult('🔄 Looking up distance...', 'loading');
+            
+            try {
+                const params = new URLSearchParams({
+                    origin: origin,
+                    destination: destination
+                });
+                
+                const response = await fetch(`${API_BASE_URL}/distance?${params}`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                }
+                
+                if (data.status === 'OK' && data.rows && data.rows[0] && data.rows[0].elements && data.rows[0].elements[0]) {
+                    const element = data.rows[0].elements[0];
+                    
+                    if (element.status === 'OK') {
+                        const distance = element.distance.text;
+                        const duration = element.duration.text;
+                        const originAddr = data.origin_addresses[0];
+                        const destAddr = data.destination_addresses[0];
+                        
+                        const resultHTML = `
+                            <h3>✅ Distance Found!</h3>
+                            <p><strong>From:</strong> ${originAddr}</p>
+                            <p><strong>To:</strong> ${destAddr}</p>
+                            <p><strong>Distance:</strong> ${distance}</p>
+                            <p><strong>Walking Duration:</strong> ${duration}</p>
+                        `;
+                        showResult(resultHTML, 'success');
+                    } else {
+                        showResult(`❌ Could not find route: ${element.status}`, 'error');
+                    }
+                } else {
+                    showResult(`❌ Invalid response from service: ${data.status}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showResult(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                // Reset button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Get Distance';
+            }
+        });
+        
+        function showResult(html, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = html;
+            resultDiv.className = `result ${type}`;
+            resultDiv.style.display = 'block';
+        }
+        
+        function fillExample(origin, destination) {
+            document.getElementById('origin').value = origin;
+            document.getElementById('destination').value = destination;
+        }
+    </script>
+</body>
+</html>
