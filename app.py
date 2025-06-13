@@ -43,3 +43,4 @@ def get_distance():
 if __name__ == '__main__':
     print(f"Server is running at http://localhost:{PORT}")
     app.run(host='0.0.0.0', port=PORT)
+    
