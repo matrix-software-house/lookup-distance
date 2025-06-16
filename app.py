@@ -1,18 +1,25 @@
 # app.py
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file, make_response
 import requests
 import os
 from dotenv import load_dotenv
-from flask_cors import CORS
+# CORS moved to Nginx configuration
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
-# CORS(app)
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 PORT = 5001
+UPLOAD_FOLDER = 'uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+@app.before_request
+def log_request():
+    print(f"Received {request.method} request for {request.path}")
+
 
 @app.route('/distance', methods=['GET'])
 def get_distance():
@@ -38,6 +45,31 @@ def get_distance():
         return jsonify(response.json()), 200
     except requests.RequestException:
         return jsonify({ "error": "Error while accessing Google API." }), 500
+
+
+@app.route('/upload', methods=['POST', 'OPTIONS'])
+def upload():
+    # if request.method == 'OPTIONS':
+    #     response = make_response()
+    #     response.headers['Access-Control-Allow-Origin']  = 'http://localhost:5173'
+    #     response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+    #     response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    #     return response
+
+    if 'audio' not in request.files:
+        return 'No audio file provided', 400
+
+    print("Received audio file")
+    audio_file = request.files['audio']
+    file_path = os.path.join(UPLOAD_FOLDER, 'latest_audio.webm')
+    audio_file.save(file_path)
+
+    response = make_response(send_file(file_path, mimetype='audio/webm'))
+    # response.headers['Access-Control-Allow-Origin'] = 'http://localhost:5173'
+    # print(response)
+    return response
+
+
 
 # Start the Flask server
 if __name__ == '__main__':
