@@ -1,0 +1,71 @@
+distance.lookupferrara.it {
+	encode gzip
+
+	# Rate limiting a livello di Caddy
+	rate_limit {
+		zone static {
+			key {remote_host}
+			events 20
+			window 1m
+		}
+		zone api {
+			key {remote_host}
+			events 10
+			window 1m
+		}
+	}
+
+	# Match allowed CORS origins
+	@origin_local header_regexp Origin ^https?://(localhost|127\.0\.0\.1)(:\d+)?$
+	@origin_pages header Origin https://lookup-fo.pages.dev
+	@origin_app   header Origin https://app.lookupferrara.it
+
+	# Security headers
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-XSS-Protection "0"
+	}
+
+	# CORS: reflect allowed origins
+	header @origin_local Access-Control-Allow-Origin "{http.request.header.Origin}"
+	header @origin_pages Access-Control-Allow-Origin "{http.request.header.Origin}"
+	header @origin_app   Access-Control-Allow-Origin "{http.request.header.Origin}"
+	header @origin_local Access-Control-Allow-Credentials "true"
+	header @origin_pages Access-Control-Allow-Credentials "true"
+	header @origin_app   Access-Control-Allow-Credentials "true"
+	header @origin_local Access-Control-Allow-Methods "GET, POST, OPTIONS"
+	header @origin_pages Access-Control-Allow-Methods "GET, POST, OPTIONS"
+	header @origin_app   Access-Control-Allow-Methods "GET, POST, OPTIONS"
+	header @origin_local Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+	header @origin_pages Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+	header @origin_app   Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+	header @origin_local Vary "Origin"
+	header @origin_pages Vary "Origin"
+	header @origin_app   Vary "Origin"
+
+	# Preflight
+	@preflight method OPTIONS
+	respond @preflight 204
+
+	# API endpoints con rate limiting più stretto
+	@api_endpoints path /distance /admin/*
+	handle @api_endpoints {
+		rate_limit api
+		reverse_proxy 127.0.0.1:5001 {
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+		}
+	}
+
+	# Altri endpoint
+	handle {
+		rate_limit static
+		reverse_proxy 127.0.0.1:5001 {
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+		}
+	}
+}

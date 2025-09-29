@@ -1,0 +1,68 @@
+[
+  {
+    "id": 86,
+    "lat": 44.826410189178596,
+    "lon": 11.630261171165124,
+    "name": "Porta Romana"
+  },
+  {
+    "id": 87,
+    "lat": 44.83290154784482,
+    "lon": 11.617002635592677,
+    "name": "Piazza del Travaglio"
+  },
+  {
+    "id": 92,
+    "lat": 44.83244871007545,
+    "lon": 11.616900721714046,
+    "name": "Porta Paola"
+  },
+  {
+    "id": 94,
+    "lat": 44.8261762,
+    "lon": 11.6220539,
+    "name": "Baluardo di Sant'Antonio"
+  },
+  {
+    "id": 97,
+    "lat": 44.830252796515666,
+    "lon": 11.618950357595248,
+    "name": "Casa dell'Ortolano"
+  },
+  {
+    "id": 99,
+    "lat": 44.8283525,
+    "lon": 11.6224405,
+    "name": "Palazzo Tassoni e Via Quartieri"
+  },
+  {
+    "id": 101,
+    "lat": 44.8220125,
+    "lon": 11.6275259,
+    "name": "Basilica di San Giorgio"
+  },
+  {
+    "id": 102,
+    "lat": 44.82592495211945,
+    "lon": 11.630778960494998,
+    "name": "Bagni Ducali"
+  },
+  {
+    "id": 103,
+    "lat": 44.82589181018114,
+    "lon": 11.633006385233708,
+    "name": "Centro Slavich"
+  },
+  {
+    "id": 104,
+    "lat": 44.82530859783391,
+    "lon": 11.625516235862706,
+    "name": "Baluardo dell'Amore"
+  },
+  {
+    "id": 105,
+    "lat": 44.8278457,
+    "lon": 11.6219084,
+    "name": "Baluardo di San Pietro"
+  }
+]

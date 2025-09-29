@@ -12,6 +12,11 @@ services:
       - FLASK_ENV=production
     env_file:
       - .env
+    volumes:
+      # Monta il file points_of_interest.json nella cartella host lookup-fe-distance2
+      - ~/lookup-fe-distance2:/app/shared
+      # Monta anche distance_cache.json per persistenza della cache
+      - ~/lookup-fe-distance2/distance_cache.json:/app/distance_cache.json
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5001/distance?origin=test&destination=test"]

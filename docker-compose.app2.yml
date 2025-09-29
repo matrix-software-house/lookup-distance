@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  lookup-distance-api2:
+    build:
+      context: .
+      dockerfile: Dockerfile2
+    container_name: lookup-distance-service-app2
+    ports:
+      - "5002:5002"
+    environment:
+      - FLASK_ENV=production
+      - PYTHONPATH=/app
+    env_file:
+      - .env
+    volumes:
+      # Monta la cartella condivisa per punti di interesse e cache
+      - ~/lookup-fe-distance2:/app/shared
+      # Crea la cartella se non esiste
+      - /tmp/.docker-dummy:/tmp/.docker-dummy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/get_points?secret=${ADMIN_SECRET}"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+      start_period: 40s
+    networks:
+      - lookup-distance-network
+
+networks:
+  lookup-distance-network:
+    driver: bridge
