@@ -10,6 +10,20 @@ echo "🧪 Testing Distance Lookup Service v2 (Anti-Abuse)"
 echo "================================================="
 
 echo ""
+echo "0️⃣  Testing Health Check endpoints"
+echo "----------------------------------"
+echo "Root endpoint:"
+curl -s "$BASE_URL/" | python3 -m json.tool 2>/dev/null || curl -s "$BASE_URL/"
+
+echo ""
+echo "Health endpoint:"
+curl -s "$BASE_URL/health" | python3 -m json.tool 2>/dev/null || curl -s "$BASE_URL/health"
+
+echo ""
+echo "Health check via distance endpoint:"
+curl -s "$BASE_URL/distance?origin=test&destination=test" | python3 -m json.tool 2>/dev/null || curl -s "$BASE_URL/distance?origin=test&destination=test"
+
+echo ""
 echo "1️⃣  Testing /get_points endpoint (loading points from Strapi)"
 echo "-----------------------------------------------------------"
 response=$(curl -s "$BASE_URL/get_points?secret=$ADMIN_SECRET")

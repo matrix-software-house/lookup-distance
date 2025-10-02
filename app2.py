@@ -4,7 +4,7 @@ import requests
 import os
 import json
 from dotenv import load_dotenv
-from flask_cors import CORS
+# from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from math import radians, cos, sin, sqrt, atan2
@@ -15,7 +15,7 @@ from collections import defaultdict, deque
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+# CORS(app)
 
 # Initialize Flask-Limiter
 limiter = Limiter(
@@ -192,9 +192,10 @@ def get_distance_with_google(origin_coords, dest_coords):
 
 def get_distance_with_openroute(origin_coords, dest_coords):
     """Ottiene distanza e durata usando OpenRouteService API"""
-    url = "https://api.openrouteservice.org/v2/directions/foot-walking"
+    # url = "https://api.openrouteservice.org/v2/directions/foot-walking"
+    url = "https://ors.fabvision.it/ors/v2/directions/foot-walking"
     headers = {
-        "Authorization": OPENROUTE_API_KEY,
+        # "Authorization": OPENROUTE_API_KEY,
         "Content-Type": "application/json"
     }
     
@@ -215,7 +216,7 @@ def get_distance_with_openroute(origin_coords, dest_coords):
         print(f"❌ OpenRoute API error: {e}")
         return None, None
 
-@app.route('/get_points', methods=['GET'])
+@app.route('/get_points', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
 def get_points():
     """Endpoint per ricaricare i punti di interesse da Strapi"""
@@ -284,6 +285,17 @@ def get_distance():
         
         if not origin or not destination:
             return jsonify({"error": "Both origin and destination are required"}), 400
+        
+        # Health check endpoint
+        if origin == "test" and destination == "test":
+            return jsonify({
+                "status": "healthy",
+                "service": "Distance API v2",
+                "timestamp": time.time(),
+                "points_loaded": len(points_of_interest),
+                "cache_entries": len(distance_cache),
+                "message": "Service is running correctly"
+            }), 200
         
         origin_lat, origin_lon = map(float, origin.split(','))
         dest_lat, dest_lon = map(float, destination.split(','))
@@ -452,6 +464,43 @@ def clear_cache():
     save_cache_to_file()
     
     return jsonify({"success": True, "cleared_entries": cache_size})
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Endpoint dedicato per health check"""
+    return jsonify({
+        "status": "healthy",
+        "service": "Distance API v2",
+        "version": "2.0",
+        "timestamp": time.time(),
+        "uptime": "service running",
+        "points_loaded": len(points_of_interest),
+        "cache_entries": len(distance_cache),
+        "endpoints": [
+            "/health",
+            "/get_points",
+            "/distance", 
+            "/all_distances",
+            "/admin/clear_cache"
+        ],
+        "message": "All systems operational"
+    }), 200
+
+@app.route('/', methods=['GET'])
+def root():
+    """Root endpoint con informazioni base"""
+    return jsonify({
+        "service": "Distance API v2",
+        "version": "2.0",
+        "description": "Walking distance calculation service for Ferrara POIs",
+        "endpoints": {
+            "health": "/health",
+            "distance": "/distance?origin=lat,lon&destination=lat,lon",
+            "all_distances": "/all_distances?origin=lat,lon",
+            "get_points": "/get_points?secret=YOUR_SECRET"
+        },
+        "documentation": "See API_MANUAL.md for complete documentation"
+    }), 200
 
 # Carica dati all'avvio
 load_points_from_file()
